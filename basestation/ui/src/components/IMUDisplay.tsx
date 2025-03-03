@@ -2,21 +2,20 @@ import * as THREE from 'three';
 import { createRoot } from 'react-dom/client';
 import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame, ThreeElements, Vector3 } from '@react-three/fiber';
+import { useLoader } from '@react-three/fiber';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { IMUData, Quaternion } from '@/types/binding';
 
-
-interface BoxProps  {
+interface ModelProps {
   orientation: Quaternion;
-  position: Vector3
+  position: Vector3;
 }
 
-
-function Box({ orientation, ...props }: BoxProps) {
+function Model({ orientation, position }: ModelProps) {
   const meshRef = useRef<THREE.Mesh>(null!);
-  const [hovered, setHover] = useState(false);
-  const [active, setActive] = useState(false);
+  const geometry = useLoader(STLLoader, '../../public/AS5600Mount_nema17.stl');
 
-  // Use useMemo to avoid recreating the quaternion on every render
+  // Compute quaternion to rotate the model
   const quaternion = useMemo(() => {
     return new THREE.Quaternion(
       orientation.x,
@@ -24,7 +23,7 @@ function Box({ orientation, ...props }: BoxProps) {
       orientation.z,
       orientation.w
     );
-  }, [orientation.x, orientation.y, orientation.z, orientation.w]); // Depend on individual quaternion components
+  }, [orientation.x, orientation.y, orientation.z, orientation.w]);
 
   useFrame(() => {
     if (meshRef.current) {
@@ -33,16 +32,8 @@ function Box({ orientation, ...props }: BoxProps) {
   });
 
   return (
-    <mesh
-      {...props}
-      ref={meshRef}
-      scale={active ? 1.5 : 1}
-      onClick={(event) => setActive(!active)}
-      onPointerOver={(event) => setHover(true)}
-      onPointerOut={(event) => setHover(false)}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={hovered ? 'hotpink' : '#2f74c0'} />
+    <mesh ref={meshRef} geometry={geometry} position={position}>
+      <meshStandardMaterial color="#2f74c0" />
     </mesh>
   );
 }
@@ -50,13 +41,13 @@ function Box({ orientation, ...props }: BoxProps) {
 export const IMUDisplay = ({ imu }: { imu?: IMUData }) => {
   return (
     <div
-      className="w-80 h-80 rounded-[50%] "
+      className="w-80 h-80 rounded-[50%]"
       style={{
         border: '5px solid teal',
         overflow: 'hidden',
         background: 'rgba(0, 0, 0, 0.6)',
       }}
-    >{
+    >
       <Canvas>
         <ambientLight intensity={Math.PI / 2} />
         <spotLight
@@ -67,12 +58,8 @@ export const IMUDisplay = ({ imu }: { imu?: IMUData }) => {
           intensity={Math.PI}
         />
         <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-        {
-            imu?.orientation != undefined && 
-        <Box position={[0, 0, 0]} orientation={imu.orientation} />
-        }
+        {imu?.orientation && <Model position={[0, 0, 0]} orientation={imu.orientation} />}
       </Canvas>
-    }
     </div>
   );
 };
