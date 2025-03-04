@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame, ThreeElements, Vector3 } from '@react-three/fiber';
 import { useLoader } from '@react-three/fiber';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { IMUData, Quaternion } from '@/types/binding';
 
 interface ModelProps {
@@ -13,7 +13,7 @@ interface ModelProps {
 
 function Model({ orientation, position }: ModelProps) {
   const meshRef = useRef<THREE.Mesh>(null!);
-  const geometry = useLoader(STLLoader, '../../public/AS5600Mount_nema17.stl');
+  const geometry = useLoader(STLLoader, '/AS5600Mount_nema17.stl');
 
   // Compute quaternion to rotate the model
   const quaternion = useMemo(() => {
